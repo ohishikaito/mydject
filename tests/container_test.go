@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/softia-inc/dject"
+	dject "github.com/ohishikaito/mydject"
 )
 
 func Test_container_Invoke(t *testing.T) {

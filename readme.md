@@ -30,7 +30,7 @@ git push origin --tags
 ## Installation
 
 ```sh
-go get github.com/softia-inc/dject
+go get github.com/ohishikaito/mydject
 ```
 
 ## Usage
@@ -45,7 +45,7 @@ import (
 	"os"
 
 	"github.com/google/uuid"
-	"github.com/softia-inc/dject"
+	"github.com/ohishikaito/mydject"
 )
 
 type (
