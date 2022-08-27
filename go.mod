@@ -1,4 +1,4 @@
-module github.com/softia-inc/dject
+module github.com/ohishikaito/mydject
 
 go 1.17
 
