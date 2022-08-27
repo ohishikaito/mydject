@@ -1,4 +1,4 @@
-package dject
+package mydject
 
 import "reflect"
 

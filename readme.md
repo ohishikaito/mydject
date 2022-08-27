@@ -1,4 +1,4 @@
-# dject
+# mydject
 
 Simple DI Container
 
@@ -11,7 +11,7 @@ go(v1.13.7)
 ### Build
 
 ```sh
-go build -o dist/dject
+go build -o dist/mydject
 ```
 
 ### Test
@@ -72,7 +72,7 @@ func (service1 *service1) GetName() string {
 }
 func main() {
 	// Create container
-	container := dject.NewContainer()
+	container := mydject.NewContainer()
 
 	// Register service
 	err := container.Register(NewService1)
@@ -104,27 +104,27 @@ func main() {
 container.Register(NewService1)
 
 // Register as singleton
-container.Register(NewService1, dject.RegisterOptions{LifetimeScope: dject.ContainerManaged})
+container.Register(NewService1, mydject.RegisterOptions{LifetimeScope: mydject.ContainerManaged})
 
 // Register const value as singleton
 ifs := []reflect.Type{reflect.TypeOf((*Service3)(nil)).Elem()}
-container.Register(NewService3(), dject.RegisterOptions{Interfaces: ifs})
+container.Register(NewService3(), mydject.RegisterOptions{Interfaces: ifs})
 ```
 
 #### Invoke
 
 ```go
-container := dject.NewContainer()
+container := mydject.NewContainer()
 container.Register(NewService1)
 container.Invoke(func(
 	service1 Service1,
-	currentContainer dject.Container,
-	ioCContainer dject.IoCContainer,
-	serviceLocator dject.ServiceLocator,
+	currentContainer mydject.Container,
+	ioCContainer mydject.IoCContainer,
+	serviceLocator mydject.ServiceLocator,
 ) {
 	// service1 is auto resolved by container.
-	// dject.Container, dject.IoCContainer,
-	// dject.ServiceLocator are auto resolved without register. These are equal to container.
+	// mydject.Container, mydject.IoCContainer,
+	// mydject.ServiceLocator are auto resolved without register. These are equal to container.
 })
 container.Invoke(func(
 	service1 Service1,
@@ -137,16 +137,16 @@ container.Invoke(func(
 #### ChildContainer
 
 ```go
-container := dject.NewContainer()
+container := mydject.NewContainer()
 container.Register(NewService1)
 childContainer := container.CreateChildContainer()
 childContainer.Register(NewService2)
 childContainer.Invoke(func(
 	service1 Service1,
 	service2 Service2,
-	currentContainer dject.Container,
-	ioCContainer dject.IoCContainer,
-	serviceLocator dject.ServiceLocator,
+	currentContainer mydject.Container,
+	ioCContainer mydject.IoCContainer,
+	serviceLocator mydject.ServiceLocator,
 ) {
 	// service1 is auto resolved by container.
 	// service2 is auto resolved by childContainer.

@@ -5,12 +5,12 @@ import (
 	"reflect"
 	"testing"
 
-	dject "github.com/ohishikaito/mydject"
+	"github.com/ohishikaito/mydject"
 )
 
 func Test_container_Invoke(t *testing.T) {
 	t.Run("最後尾の引数がエラーで nil でない場合", func(t *testing.T) {
-		sut := dject.NewContainer()
+		sut := mydject.NewContainer()
 		if err := sut.Register(NewService1With2WithError); err != nil {
 			t.Fatal()
 		}
@@ -22,7 +22,7 @@ func Test_container_Invoke(t *testing.T) {
 
 	t.Run("1回の Invoke で生成されるオブジェクトは登録された型ごとに一意であること", func(t *testing.T) {
 		t.Parallel()
-		sut := dject.NewContainer()
+		sut := mydject.NewContainer()
 		if err := sut.Register(NewUseCase); err != nil {
 			t.Fatal(err)
 		}
@@ -32,12 +32,12 @@ func Test_container_Invoke(t *testing.T) {
 		if err := sut.Register(NewService1); err != nil {
 			t.Fatal(err)
 		}
-		if err := sut.Register(NewService2, dject.RegisterOptions{LifetimeScope: dject.ContainerManaged}); err != nil {
+		if err := sut.Register(NewService2, mydject.RegisterOptions{LifetimeScope: mydject.ContainerManaged}); err != nil {
 			t.Fatal(err)
 		}
 
 		ifs := []reflect.Type{reflect.TypeOf((*Service3)(nil)).Elem()}
-		if err := sut.Register(NewService3(), dject.RegisterOptions{Interfaces: ifs}); err != nil {
+		if err := sut.Register(NewService3(), mydject.RegisterOptions{Interfaces: ifs}); err != nil {
 			t.Fatal(err)
 		}
 		if err := sut.Invoke(func(
@@ -75,7 +75,7 @@ func Test_container_Invoke(t *testing.T) {
 	})
 	t.Run("LifetimeScope が InvokeManaged の場合 Invoke 毎に異なるインスタンスが生成されること", func(t *testing.T) {
 		t.Parallel()
-		sut := dject.NewContainer()
+		sut := mydject.NewContainer()
 
 		if err := sut.Register(NewService1); err != nil {
 			t.Fatal(err)
@@ -96,13 +96,13 @@ func Test_container_Invoke(t *testing.T) {
 	})
 	t.Run("LifetimeScope が ContainerManaged の場合 Invoke 時に同一のインスタンスが生成されること", func(t *testing.T) {
 		t.Parallel()
-		sut := dject.NewContainer()
+		sut := mydject.NewContainer()
 
-		if err := sut.Register(NewService2, dject.RegisterOptions{LifetimeScope: dject.ContainerManaged}); err != nil {
+		if err := sut.Register(NewService2, mydject.RegisterOptions{LifetimeScope: mydject.ContainerManaged}); err != nil {
 			t.Fatal(err)
 		}
 		ifs := []reflect.Type{reflect.TypeOf((*Service3)(nil)).Elem()}
-		if err := sut.Register(NewService3(), dject.RegisterOptions{Interfaces: ifs}); err != nil {
+		if err := sut.Register(NewService3(), mydject.RegisterOptions{Interfaces: ifs}); err != nil {
 			t.Fatal(err)
 		}
 		service2ID := ""
@@ -126,11 +126,11 @@ func Test_container_Invoke(t *testing.T) {
 	})
 	t.Run("コンテナインスタンス自身を自己解決できること", func(t *testing.T) {
 		t.Parallel()
-		sut := dject.NewContainer()
+		sut := mydject.NewContainer()
 		err := sut.Invoke(func(
-			currentContainer dject.Container,
-			ioCContainer dject.IoCContainer,
-			serviceLocator dject.ServiceLocator,
+			currentContainer mydject.Container,
+			ioCContainer mydject.IoCContainer,
+			serviceLocator mydject.ServiceLocator,
 		) {
 			if sut != currentContainer ||
 				sut != ioCContainer ||
@@ -144,31 +144,31 @@ func Test_container_Invoke(t *testing.T) {
 	})
 	t.Run("関数以外が指定された", func(t *testing.T) {
 		t.Parallel()
-		sut := dject.NewContainer()
+		sut := mydject.NewContainer()
 		err := sut.Invoke("")
-		if err == nil || err != dject.ErrRequireFunction {
+		if err == nil || err != mydject.ErrRequireFunction {
 			t.Fatal(err)
 		}
 	})
 	t.Run("解決するオブジェクトが存在しない", func(t *testing.T) {
 		t.Parallel()
-		sut := dject.NewContainer()
+		sut := mydject.NewContainer()
 		err := sut.Invoke(func() {})
-		if err == nil || err != dject.ErrNotFoundComponent {
+		if err == nil || err != mydject.ErrNotFoundComponent {
 			t.Fatal(err)
 		}
 	})
 	t.Run("指定されたタイプを解決できない", func(t *testing.T) {
 		t.Parallel()
-		sut := dject.NewContainer()
+		sut := mydject.NewContainer()
 		err := sut.Invoke(func(service1 Service1) {})
-		if err == nil || !dject.IsErrInvalidResolveComponent(err) {
+		if err == nil || !mydject.IsErrInvalidResolveComponent(err) {
 			t.Fatal(err)
 		}
 	})
 	t.Run("Invoke した関数の引数", func(t *testing.T) {
 		t.Run("error が返ってきた場合", func(t *testing.T) {
-			sut := dject.NewContainer()
+			sut := mydject.NewContainer()
 			if err := sut.Register(NewService1); err != nil {
 				t.Fatal()
 			}
@@ -182,19 +182,19 @@ func Test_container_Invoke(t *testing.T) {
 	})
 	t.Run("コンストラクタの戻り値が複数の場合", func(t *testing.T) {
 		t.Run("先頭の引数が解決される", func(t *testing.T) {
-			sut := dject.NewContainer()
+			sut := mydject.NewContainer()
 			if err := sut.Register(NewService1With2); err != nil {
 				t.Fatal()
 			}
 			if err := sut.Invoke(func(service1 Service1) {}); err != nil {
 				t.Fatal()
 			}
-			if err := sut.Invoke(func(service2 Service2) {}); !dject.IsErrInvalidResolveComponent(err) {
+			if err := sut.Invoke(func(service2 Service2) {}); !mydject.IsErrInvalidResolveComponent(err) {
 				t.Fatal()
 			}
 		})
 		t.Run("最後尾の引数がエラーで nil でない場合 ()", func(t *testing.T) {
-			sut := dject.NewContainer()
+			sut := mydject.NewContainer()
 			if err := sut.Register(NewService1With2WithError); err != nil {
 				t.Fatal()
 			}
@@ -203,8 +203,8 @@ func Test_container_Invoke(t *testing.T) {
 			}
 		})
 		t.Run("最後尾の引数がエラーで nil でない場合(ContainerManaged)", func(t *testing.T) {
-			sut := dject.NewContainer()
-			if err := sut.Register(NewService1With2WithError, dject.RegisterOptions{LifetimeScope: dject.ContainerManaged}); err != nil {
+			sut := mydject.NewContainer()
+			if err := sut.Register(NewService1With2WithError, mydject.RegisterOptions{LifetimeScope: mydject.ContainerManaged}); err != nil {
 				t.Fatal()
 			}
 			if err := sut.Invoke(func(service1 Service1) {}); err.Error() != "NewService1With2WithError Error" {
@@ -221,17 +221,17 @@ func Test_container_CreateChildContainer(t *testing.T) {
 			s2 Service2
 			s3 Service3
 		}
-		setupParent := func(t *testing.T, container dject.Container) *result {
-			if err := container.Register(NewNestedService, dject.RegisterOptions{LifetimeScope: dject.ContainerManaged}); err != nil {
+		setupParent := func(t *testing.T, container mydject.Container) *result {
+			if err := container.Register(NewNestedService, mydject.RegisterOptions{LifetimeScope: mydject.ContainerManaged}); err != nil {
 				t.Fatal(err)
 			}
 			if err := container.Register(NewService1); err != nil {
 				t.Fatal(err)
 			}
-			if err := container.Register(NewService2, dject.RegisterOptions{LifetimeScope: dject.ContainerManaged}); err != nil {
+			if err := container.Register(NewService2, mydject.RegisterOptions{LifetimeScope: mydject.ContainerManaged}); err != nil {
 				t.Fatal(err)
 			}
-			if err := container.Register(NewService3(), dject.RegisterOptions{Interfaces: []reflect.Type{reflect.TypeOf((*Service3)(nil)).Elem()}}); err != nil {
+			if err := container.Register(NewService3(), mydject.RegisterOptions{Interfaces: []reflect.Type{reflect.TypeOf((*Service3)(nil)).Elem()}}); err != nil {
 				t.Fatal(err)
 			}
 			var ns NestedService
@@ -249,7 +249,7 @@ func Test_container_CreateChildContainer(t *testing.T) {
 			}
 			return &result{ns, s1, s2, s3}
 		}
-		chk := func(t *testing.T, sut dject.Container, r *result) {
+		chk := func(t *testing.T, sut mydject.Container, r *result) {
 			if err := sut.Invoke(func(nestedService NestedService, service1 Service1, service2 Service2, service3 Service3) {
 				if r.ns.GetID() != nestedService.GetID() {
 					t.Fatal(r.ns.GetID(), r.s1.GetID(), r.s2.GetID(), r.s3.GetID(), nestedService.GetID(), service1.GetID(), service2.GetID(), service3.GetID())
@@ -269,42 +269,42 @@ func Test_container_CreateChildContainer(t *testing.T) {
 		}
 		t.Run("親コンテナで登録したコンポーネントを子コンテナでインスタンス生成できること", func(t *testing.T) {
 			t.Parallel()
-			container := dject.NewContainer()
+			container := mydject.NewContainer()
 			r := setupParent(t, container)
 			sut := container.CreateChildContainer()
 			chk(t, sut, r)
 		})
 		t.Run("親コンテナで登録したコンポーネントを孫コンテナでインスタンス生成できること", func(t *testing.T) {
 			t.Parallel()
-			container := dject.NewContainer()
+			container := mydject.NewContainer()
 			r := setupParent(t, container)
 			sut := container.CreateChildContainer().CreateChildContainer()
 			chk(t, sut, r)
 		})
 		t.Run("子コンテナで登録したコンポーネントを孫コンテナでインスタンス生成できること", func(t *testing.T) {
 			t.Parallel()
-			container := dject.NewContainer().CreateChildContainer()
+			container := mydject.NewContainer().CreateChildContainer()
 			r := setupParent(t, container)
 			sut := container.CreateChildContainer()
 			chk(t, sut, r)
 		})
 	})
 	t.Run("コンポーネントの登録状態を継承すること", func(t *testing.T) {
-		setupParent := func(t *testing.T, container dject.Container) {
-			if err := container.Register(NewNestedService, dject.RegisterOptions{LifetimeScope: dject.ContainerManaged}); err != nil {
+		setupParent := func(t *testing.T, container mydject.Container) {
+			if err := container.Register(NewNestedService, mydject.RegisterOptions{LifetimeScope: mydject.ContainerManaged}); err != nil {
 				t.Fatal(err)
 			}
 			if err := container.Register(NewService1); err != nil {
 				t.Fatal(err)
 			}
-			if err := container.Register(NewService2, dject.RegisterOptions{LifetimeScope: dject.ContainerManaged}); err != nil {
+			if err := container.Register(NewService2, mydject.RegisterOptions{LifetimeScope: mydject.ContainerManaged}); err != nil {
 				t.Fatal(err)
 			}
-			if err := container.Register(NewService3(), dject.RegisterOptions{Interfaces: []reflect.Type{reflect.TypeOf((*Service3)(nil)).Elem()}}); err != nil {
+			if err := container.Register(NewService3(), mydject.RegisterOptions{Interfaces: []reflect.Type{reflect.TypeOf((*Service3)(nil)).Elem()}}); err != nil {
 				t.Fatal(err)
 			}
 		}
-		chk := func(t *testing.T, sut dject.Container) {
+		chk := func(t *testing.T, sut mydject.Container) {
 			var ns NestedService
 			var s1 Service1
 			var s2 Service2
@@ -350,21 +350,21 @@ func Test_container_CreateChildContainer(t *testing.T) {
 		}
 		t.Run("親コンテナで登録したコンポーネントを子コンテナでインスタンス生成できること", func(t *testing.T) {
 			t.Parallel()
-			container := dject.NewContainer()
+			container := mydject.NewContainer()
 			setupParent(t, container)
 			sut := container.CreateChildContainer()
 			chk(t, sut)
 		})
 		t.Run("親コンテナで登録したコンポーネントを孫コンテナでインスタンス生成できること", func(t *testing.T) {
 			t.Parallel()
-			container := dject.NewContainer()
+			container := mydject.NewContainer()
 			setupParent(t, container)
 			sut := container.CreateChildContainer().CreateChildContainer()
 			chk(t, sut)
 		})
 		t.Run("子コンテナで登録したコンポーネントを孫コンテナでインスタンス生成できること", func(t *testing.T) {
 			t.Parallel()
-			container := dject.NewContainer().CreateChildContainer()
+			container := mydject.NewContainer().CreateChildContainer()
 			setupParent(t, container)
 			sut := container.CreateChildContainer()
 			chk(t, sut)
@@ -372,16 +372,16 @@ func Test_container_CreateChildContainer(t *testing.T) {
 	})
 	t.Run("子コンテナで登録したコンポーネントを子コンテナでインスタンス生成できること", func(t *testing.T) {
 		t.Parallel()
-		container := dject.NewContainer()
+		container := mydject.NewContainer()
 
 		sut := container.CreateChildContainer()
 		if err := sut.Register(NewService1); err != nil {
 			t.Fatal(err)
 		}
-		if err := sut.Register(NewService2, dject.RegisterOptions{LifetimeScope: dject.ContainerManaged}); err != nil {
+		if err := sut.Register(NewService2, mydject.RegisterOptions{LifetimeScope: mydject.ContainerManaged}); err != nil {
 			t.Fatal(err)
 		}
-		if err := sut.Register(NewService3(), dject.RegisterOptions{Interfaces: []reflect.Type{reflect.TypeOf((*Service3)(nil)).Elem()}}); err != nil {
+		if err := sut.Register(NewService3(), mydject.RegisterOptions{Interfaces: []reflect.Type{reflect.TypeOf((*Service3)(nil)).Elem()}}); err != nil {
 			t.Fatal(err)
 		}
 
@@ -411,13 +411,13 @@ func Test_container_CreateChildContainer(t *testing.T) {
 	})
 	t.Run("親コンテナで登録した内容を子コンテナで上書きできること", func(t *testing.T) {
 		t.Parallel()
-		container := dject.NewContainer()
-		if err := container.Register(NewService1(), dject.RegisterOptions{Interfaces: []reflect.Type{reflect.TypeOf((*Service1)(nil)).Elem()}}); err != nil {
+		container := mydject.NewContainer()
+		if err := container.Register(NewService1(), mydject.RegisterOptions{Interfaces: []reflect.Type{reflect.TypeOf((*Service1)(nil)).Elem()}}); err != nil {
 			t.Fatal(err)
 		}
 
 		sut := container.CreateChildContainer()
-		if err := sut.Register(NewService2(), dject.RegisterOptions{Interfaces: []reflect.Type{reflect.TypeOf((*Service1)(nil)).Elem()}}); err != nil {
+		if err := sut.Register(NewService2(), mydject.RegisterOptions{Interfaces: []reflect.Type{reflect.TypeOf((*Service1)(nil)).Elem()}}); err != nil {
 			t.Fatal(err)
 		}
 
@@ -432,35 +432,35 @@ func Test_container_CreateChildContainer(t *testing.T) {
 }
 func Test_container_Register(t *testing.T) {
 	t.Run("返り値がない関数を登録しようとした場合", func(t *testing.T) {
-		sut := dject.NewContainer()
+		sut := mydject.NewContainer()
 		err := sut.Register(func() {
 		})
-		if err == nil || err != dject.ErrRequireResponse {
+		if err == nil || err != mydject.ErrRequireResponse {
 			t.Fatal(err)
 		}
 	})
 	t.Run("オプションは単一である必要があること", func(t *testing.T) {
-		sut := dject.NewContainer()
-		opt1 := dject.RegisterOptions{}
-		opt2 := dject.RegisterOptions{}
+		sut := mydject.NewContainer()
+		opt1 := mydject.RegisterOptions{}
+		opt2 := mydject.RegisterOptions{}
 		err := sut.Register(func() string {
 			return ""
 		}, opt1, opt2)
-		if err == nil || err != dject.ErrNoMultipleOption {
+		if err == nil || err != mydject.ErrNoMultipleOption {
 			t.Fatal(err)
 		}
 	})
 	t.Run("ポインタを登録する場合は、インターフェイスを指定する必要があること", func(t *testing.T) {
-		sut := dject.NewContainer()
+		sut := mydject.NewContainer()
 		err := sut.Register(NewService3())
-		if err == nil || err != dject.ErrNeedInterfaceOnPointerRegistering {
+		if err == nil || err != mydject.ErrNeedInterfaceOnPointerRegistering {
 			t.Fatal(err)
 		}
 	})
 }
 func Test_container_Verify(t *testing.T) {
 	t.Run("Verify できること1", func(t *testing.T) {
-		sut := dject.NewContainer()
+		sut := mydject.NewContainer()
 
 		if err := sut.Register(NewUseCase); err != nil {
 			t.Fatal(err)
@@ -471,12 +471,12 @@ func Test_container_Verify(t *testing.T) {
 		if err := sut.Register(NewService1); err != nil {
 			t.Fatal(err)
 		}
-		if err := sut.Register(NewService2, dject.RegisterOptions{LifetimeScope: dject.ContainerManaged}); err != nil {
+		if err := sut.Register(NewService2, mydject.RegisterOptions{LifetimeScope: mydject.ContainerManaged}); err != nil {
 			t.Fatal(err)
 		}
 
 		ifs := []reflect.Type{reflect.TypeOf((*Service3)(nil)).Elem()}
-		if err := sut.Register(NewService3(), dject.RegisterOptions{Interfaces: ifs}); err != nil {
+		if err := sut.Register(NewService3(), mydject.RegisterOptions{Interfaces: ifs}); err != nil {
 			t.Fatal(err)
 		}
 		if err := sut.Verify(); err != nil {
@@ -484,13 +484,13 @@ func Test_container_Verify(t *testing.T) {
 		}
 	})
 	t.Run("Verify できること2", func(t *testing.T) {
-		sut := dject.NewContainer()
-		if err := sut.Verify(); err == nil || err != dject.ErrNotFoundComponent {
+		sut := mydject.NewContainer()
+		if err := sut.Verify(); err == nil || err != mydject.ErrNotFoundComponent {
 			t.Fatal(err)
 		}
 	})
 	t.Run("Verify できること3", func(t *testing.T) {
-		sut := dject.NewContainer()
+		sut := mydject.NewContainer()
 
 		if err := sut.Register(NewUseCase); err != nil {
 			t.Fatal(err)
@@ -501,11 +501,11 @@ func Test_container_Verify(t *testing.T) {
 		if err := sut.Register(NewService1); err != nil {
 			t.Fatal(err)
 		}
-		if err := sut.Register(NewService2, dject.RegisterOptions{LifetimeScope: dject.ContainerManaged}); err != nil {
+		if err := sut.Register(NewService2, mydject.RegisterOptions{LifetimeScope: mydject.ContainerManaged}); err != nil {
 			t.Fatal(err)
 		}
 
-		if err := sut.Verify(); err == nil || !dject.IsErrInvalidResolveComponent(err) {
+		if err := sut.Verify(); err == nil || !mydject.IsErrInvalidResolveComponent(err) {
 			t.Fatal(err)
 		}
 	})

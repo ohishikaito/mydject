@@ -1,4 +1,4 @@
-package dject
+package mydject
 
 type (
 	// ContainerOptions はコンテナの生成オプションです
